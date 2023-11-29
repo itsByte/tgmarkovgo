@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	chattiness (float64) = 1
+	chattiness (float64) = 0.1
 )
 
 func Init(t backend.Tables) {
