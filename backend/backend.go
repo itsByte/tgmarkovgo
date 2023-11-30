@@ -32,7 +32,7 @@ func (t Tables) getOrCreate(cID tele.ChatID) (gomarkov.Chain, error) {
 	}
 	filePath := baseDataPath + "/" + strconv.Itoa(int(cID)) + ".json"
 	if _, err := os.Stat(filePath); err != nil {
-		slog.Info("Creating new table for chat", "chatID", cID)
+		slog.Info("Creating new table for", "chatID", cID)
 
 		c := gomarkov.NewChain(chainOrder)
 		t[cID] = TimedChain{time.Now(), c}
@@ -64,7 +64,7 @@ func ProcessMessage(t Tables, context tele.Context) error {
 
 func GenerateMessage(t Tables, context tele.Context) (string, error) {
 	cID := context.Chat().ID
-	slog.Info("Generating for chat \n", "chatID", cID)
+	slog.Info("Generating for", "chatID", cID)
 	c, err := t.getOrCreate(tele.ChatID(cID))
 	if err != nil {
 		return "", err
