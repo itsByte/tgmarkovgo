@@ -4,4 +4,5 @@ WORKDIR /app
 RUN git clone https://github.com/itsByte/MarkovBotGo src
 WORKDIR /app/src
 RUN go build -o ../
-CMD [ "/app/MarkovBotGo" ]
+WORKDIR /app/
+CMD [ "/app/markovbotgo" ]
