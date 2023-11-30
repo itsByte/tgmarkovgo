@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"os"
 	"os/signal"
@@ -17,9 +18,9 @@ const (
 )
 
 func main() {
+	flag.Parse()
 
 	t := make(backend.Tables)
-
 	go func() {
 		ticker := time.NewTicker(persistTimer)
 		defer ticker.Stop()

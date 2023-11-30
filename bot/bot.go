@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"flag"
 	"itsbyte/markovbotgo/backend"
 	"log"
 	"math/rand"
@@ -11,9 +12,9 @@ import (
 	tele "gopkg.in/telebot.v3"
 )
 
-const (
-	chattiness  (float64) = 0.1
-	replyChance (float64) = 0.6
+var (
+	chattiness  = flag.Float64("chattiness", 0.1, "Sets chattiness variable, 0-1")
+	replyChance = flag.Float64("replyChance", 0.6, "Sets replyChance variable, 0-1")
 )
 
 func Init(t backend.Tables) {
@@ -43,14 +44,14 @@ func Init(t backend.Tables) {
 			log.Fatal(err)
 			return err
 		}
-		if rand.Float64() < replyChance && ((context.Message().IsReply() && context.Message().ReplyTo.Sender.ID == context.Bot().Me.ID) || (strings.Contains(context.Text(), b.Me.Username))) {
+		if rand.Float64() < *replyChance && ((context.Message().IsReply() && context.Message().ReplyTo.Sender.ID == context.Bot().Me.ID) || (strings.Contains(context.Text(), b.Me.Username))) {
 			msg, err := backend.GenerateMessage(t, context)
 			if err != nil {
 				log.Fatal(err)
 				return err
 			}
 			return context.Reply(msg)
-		} else if rand.Float64() < chattiness {
+		} else if rand.Float64() < *chattiness {
 			msg, err := backend.GenerateMessage(t, context)
 			if err != nil {
 				log.Fatal(err)
