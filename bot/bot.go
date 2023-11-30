@@ -19,8 +19,9 @@ var (
 
 func Init(t backend.Tables) {
 	pref := tele.Settings{
-		Token:  os.Getenv("TOKEN"),
-		Poller: &tele.LongPoller{Timeout: 10 * time.Second},
+		Token:       os.Getenv("TOKEN"),
+		Poller:      &tele.LongPoller{Timeout: 10 * time.Second},
+		Synchronous: true,
 	}
 	b, err := tele.NewBot(pref)
 	if err != nil {
