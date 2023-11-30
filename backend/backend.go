@@ -57,14 +57,14 @@ func ProcessMessage(t Tables, context tele.Context) error {
 	if err != nil {
 		return err
 	}
-	slog.Info("Training for chat", "chatID", cID)
+	slog.Debug("Training for chat", "chatID", cID)
 	c.Add(strings.Split(context.Text(), " "))
 	return nil
 }
 
 func GenerateMessage(t Tables, context tele.Context) (string, error) {
 	cID := context.Chat().ID
-	slog.Info("Generating for", "chatID", cID)
+	slog.Debug("Generating for", "chatID", cID)
 	c, err := t.getOrCreate(tele.ChatID(cID))
 	if err != nil {
 		return "", err
