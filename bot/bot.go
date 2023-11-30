@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	chattiness (float64) = 0.1
+	chattiness  (float64) = 0.1
+	replyChance (float64) = 0.6
 )
 
 func Init(t backend.Tables) {
@@ -42,7 +43,7 @@ func Init(t backend.Tables) {
 			log.Fatal(err)
 			return err
 		}
-		if (context.Message().IsReply() && context.Message().ReplyTo.Sender.ID == context.Bot().Me.ID) || (strings.Contains(context.Text(), b.Me.Username)) {
+		if rand.Float64() < replyChance && ((context.Message().IsReply() && context.Message().ReplyTo.Sender.ID == context.Bot().Me.ID) || (strings.Contains(context.Text(), b.Me.Username))) {
 			msg, err := backend.GenerateMessage(t, context)
 			if err != nil {
 				log.Fatal(err)
