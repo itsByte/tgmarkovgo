@@ -3,7 +3,7 @@ package bot
 import (
 	"flag"
 	"itsbyte/markovbotgo/backend"
-	"log"
+	"log/slog"
 	"math/rand"
 	"os"
 	"strings"
@@ -25,14 +25,14 @@ func Init(t backend.Tables) {
 	}
 	b, err := tele.NewBot(pref)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("Error", "Code", err)
 		return
 	}
 
 	b.Handle("/generate", func(c tele.Context) error {
 		msg, err := backend.GenerateMessage(t, c)
 		if err != nil {
-			log.Fatal(err)
+			slog.Error("Error", "Code", err)
 			return err
 		}
 		return c.Send(msg)
@@ -42,20 +42,20 @@ func Init(t backend.Tables) {
 
 		err := backend.ProcessMessage(t, context)
 		if err != nil {
-			log.Fatal(err)
+			slog.Error("Error", "Code", err)
 			return err
 		}
 		if rand.Float64() < *replyChance && ((context.Message().IsReply() && context.Message().ReplyTo.Sender.ID == context.Bot().Me.ID) || (strings.Contains(context.Text(), b.Me.Username))) {
 			msg, err := backend.GenerateMessage(t, context)
 			if err != nil {
-				log.Fatal(err)
+				slog.Error("Error", "Code", err)
 				return err
 			}
 			return context.Reply(msg)
 		} else if rand.Float64() < *chattiness {
 			msg, err := backend.GenerateMessage(t, context)
 			if err != nil {
-				log.Fatal(err)
+				slog.Error("Error", "Code", err)
 				return err
 			}
 			return context.Send(msg)

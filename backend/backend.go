@@ -1,7 +1,7 @@
 package backend
 
 import (
-	"log"
+	"log/slog"
 	"os"
 	"strconv"
 	"strings"
@@ -32,7 +32,7 @@ func (t Tables) getOrCreate(cID tele.ChatID) (gomarkov.Chain, error) {
 	}
 	filePath := baseDataPath + "/" + strconv.Itoa(int(cID)) + ".json"
 	if _, err := os.Stat(filePath); err != nil {
-		log.Printf("No memory for chat %v; creating new.\n", cID)
+		slog.Info("Creating new table for chat", "chatID", cID)
 
 		c := gomarkov.NewChain(chainOrder)
 		t[cID] = TimedChain{time.Now(), c}
@@ -57,14 +57,14 @@ func ProcessMessage(t Tables, context tele.Context) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Training for chat %v.\n", cID)
+	slog.Info("Training for chat", "chatID", cID)
 	c.Add(strings.Split(context.Text(), " "))
 	return nil
 }
 
 func GenerateMessage(t Tables, context tele.Context) (string, error) {
 	cID := context.Chat().ID
-	log.Printf("Generating for chat %v.\n", cID)
+	slog.Info("Generating for chat \n", "chatID", cID)
 	c, err := t.getOrCreate(tele.ChatID(cID))
 	if err != nil {
 		return "", err
@@ -120,7 +120,7 @@ func (t Tables) UnloadOld() {
 	oldTime := time.Now().Add(-oldThreshold)
 	for k, v := range t {
 		if v.access.Before(oldTime) {
-			log.Printf("Table of chat %v unloaded since last access was on %v.\n", k, v.access)
+			slog.Info("Table unloaded", "chatID", k, "lastAccess", v.access)
 			delete(t, k)
 		}
 	}

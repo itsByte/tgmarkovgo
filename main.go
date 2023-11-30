@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -26,7 +26,7 @@ func main() {
 		defer ticker.Stop()
 		for {
 			<-ticker.C
-			log.Println("Executing persistence routine")
+			slog.Info("Executing persistence routine")
 			backend.Tables.Persist(t)
 		}
 	}()
@@ -36,7 +36,7 @@ func main() {
 		defer ticker.Stop()
 		for {
 			<-ticker.C
-			log.Println("Executing unload routine")
+			slog.Info("Executing unload routine")
 			backend.Tables.UnloadOld(t)
 		}
 	}()
@@ -45,7 +45,7 @@ func main() {
 	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-c
-		log.Println("Exiting gracefully")
+		slog.Info("Exiting gracefully")
 		backend.Tables.Persist(t)
 		os.Exit(0)
 	}()
