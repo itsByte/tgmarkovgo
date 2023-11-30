@@ -47,7 +47,7 @@ func Init(t backend.Tables) {
 				log.Fatal(err)
 				return err
 			}
-			return context.Send(msg)
+			return context.Reply(msg)
 		} else if rand.Float64() < chattiness {
 			msg, err := backend.GenerateMessage(t, context)
 			if err != nil {
