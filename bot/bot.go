@@ -45,6 +45,14 @@ func Init(t backend.Tables) {
 			photo := &tele.Photo{File: tele.FromDisk("../assets/puzzoz.jpg")}
 			return context.Send(photo)
 		}
+		if strings.Contains(context.Text(), "rose toy") {
+			photo := &tele.Photo{File: tele.FromDisk("../assets/rose.jpg")}
+			return context.Send(photo)
+		}
+		if strings.Contains(context.Text(), "cemento") {
+			photo := &tele.Photo{File: tele.FromDisk("../assets/cement.jpg")}
+			return context.Send(photo)
+		}
 		if err != nil {
 			slog.Error("Error", "Code", err)
 			return err
