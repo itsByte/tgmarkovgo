@@ -41,6 +41,10 @@ func Init(t backend.Tables) {
 	b.Handle(tele.OnText, func(context tele.Context) error {
 
 		err := backend.ProcessMessage(t, context)
+		if strings.Contains(context.Text(), "hihi piedini") {
+			photo := &tele.Photo{File: tele.FromDisk("../assets/puzzoz.jpg")}
+			return context.Send(photo)
+		}
 		if err != nil {
 			slog.Error("Error", "Code", err)
 			return err
