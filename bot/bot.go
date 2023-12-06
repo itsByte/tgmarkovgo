@@ -42,15 +42,15 @@ func Init(t backend.Tables) {
 
 		err := backend.ProcessMessage(t, context)
 		if strings.Contains(context.Text(), "hihi piedini") {
-			photo := &tele.Photo{File: tele.FromDisk("../assets/puzzoz.jpg")}
+			photo := &tele.Photo{File: tele.FromDisk("assets/puzzoz.jpg")}
 			return context.Send(photo)
 		}
 		if strings.Contains(context.Text(), "rose toy") {
-			photo := &tele.Photo{File: tele.FromDisk("../assets/rose.jpg")}
+			photo := &tele.Photo{File: tele.FromDisk("assets/rose.jpg")}
 			return context.Send(photo)
 		}
 		if strings.Contains(context.Text(), "cemento") {
-			photo := &tele.Photo{File: tele.FromDisk("../assets/cement.jpg")}
+			photo := &tele.Photo{File: tele.FromDisk("assets/cement.jpg")}
 			return context.Send(photo)
 		}
 		if err != nil {
