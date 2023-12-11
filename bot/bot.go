@@ -45,7 +45,14 @@ func Init(t backend.Tables) {
 			slog.Error("Error", "Code", err)
 			return err
 		}
-		if rand.Float64() < *replyChance && ((context.Message().IsReply() && context.Message().ReplyTo.Sender.ID == context.Bot().Me.ID) || (strings.Contains(context.Text(), b.Me.Username))) {
+		willReply := rand.Float64() < *replyChance
+		isReply := context.Message().IsReply()
+		isMe := context.Message().ReplyTo.Sender.ID == context.Bot().Me.ID
+		textMentionsMe := strings.Contains(context.Text(), b.Me.Username)
+		if willReply &&
+			(isReply ||
+				isMe ||
+				textMentionsMe) {
 			msg, err := backend.GenerateMessage(t, context)
 			if err != nil {
 				slog.Error("Error", "Code", err)
