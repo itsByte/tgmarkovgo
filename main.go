@@ -49,7 +49,6 @@ func main() {
 		backend.Tables.Persist(t)
 		os.Exit(0)
 	}()
-
+	slog.Info("Bot starting...")
 	bot.Init(t)
-	slog.Info("Bot started!")
 }
