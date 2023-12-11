@@ -26,7 +26,7 @@ func main() {
 		defer ticker.Stop()
 		for {
 			<-ticker.C
-			slog.Info("Executing persistence routine")
+			slog.Debug("Executing persistence routine")
 			backend.Tables.Persist(t)
 		}
 	}()
@@ -36,7 +36,7 @@ func main() {
 		defer ticker.Stop()
 		for {
 			<-ticker.C
-			slog.Info("Executing unload routine")
+			slog.Debug("Executing unload routine")
 			backend.Tables.UnloadOld(t)
 		}
 	}()

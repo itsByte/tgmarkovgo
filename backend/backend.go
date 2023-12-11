@@ -124,7 +124,7 @@ func (t Tables) UnloadOld() {
 	oldTime := time.Now().Add(-oldThreshold)
 	for k, v := range t {
 		if v.access.Before(oldTime) {
-			slog.Info("Table unloaded", "chatID", k, "lastAccess", v.access)
+			slog.Debug("Table unloaded", "chatID", k, "lastAccess", v.access)
 			delete(t, k)
 		}
 	}
