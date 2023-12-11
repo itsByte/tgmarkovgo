@@ -51,4 +51,5 @@ func main() {
 	}()
 
 	bot.Init(t)
+	slog.Info("Bot started!")
 }
