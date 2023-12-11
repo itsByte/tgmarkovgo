@@ -47,7 +47,10 @@ func Init(t backend.Tables) {
 		}
 		willReply := rand.Float64() < *replyChance
 		isReply := context.Message().IsReply()
-		isMe := context.Message().ReplyTo.Sender.ID == context.Bot().Me.ID
+		var isMe bool
+		if isReply {
+			isMe = context.Message().ReplyTo.Sender.ID == context.Bot().Me.ID
+		}
 		textMentionsMe := strings.Contains(context.Text(), b.Me.Username)
 		if willReply &&
 			((isReply && isMe) ||
