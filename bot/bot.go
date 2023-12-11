@@ -50,8 +50,7 @@ func Init(t backend.Tables) {
 		isMe := context.Message().ReplyTo.Sender.ID == context.Bot().Me.ID
 		textMentionsMe := strings.Contains(context.Text(), b.Me.Username)
 		if willReply &&
-			(isReply ||
-				isMe ||
+			((isReply && isMe) ||
 				textMentionsMe) {
 			msg, err := backend.GenerateMessage(t, context)
 			if err != nil {
