@@ -1,0 +1,56 @@
+# This workflow will perform a test whenever there
+# is some change in code done to ensure that the changes
+# are not buggy and we are getting the desired output.
+name: Push to GHCR
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1'  # every monday at midnight
+env:
+    IMAGE_NAME: markovbotgo
+    IMAGE_TAGS: v1 ${{ github.sha }}
+    IMAGE_REGISTRY: ghcr.io/${{ github.actor }}
+    GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
+    GITHUB_REPOSITORY: ${{ github.repository }}
+    REGISTRY_USER: ${{ github.actor }}
+    REGISTRY_PASSWORD: ${{ github.token }}
+
+jobs:
+  push-ghcr:
+    name: Build and push image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set ENV variables
+        run: |
+          echo "IMAGE_REGISTRY=${IMAGE_REGISTRY,,}" >> $GITHUB_ENV
+
+      # Checkout push-to-registry action github repository
+      - name: Checkout Push to Registry action
+        uses: actions/checkout@v4
+
+      # Build image using Buildah action
+      - name: Build Image
+        id: build_image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: ${{ env.IMAGE_NAME }}
+          tags: ${{ env.IMAGE_TAGS }}
+          containerfiles: |
+            ./Containerfile
+
+      # Push the image to GHCR (Image Registry)
+      - name: Push To GHCR
+        uses: redhat-actions/push-to-registry@v2
+        id: push
+        with:
+          image: ${{ steps.build_image.outputs.image }}
+          tags: ${{ steps.build_image.outputs.tags }}
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+
+      - name: Echo outputs
+        run: |
+          echo "${{ toJSON(steps.push.outputs) }}"
