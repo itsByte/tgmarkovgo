@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	chainOrder = flag.Int("order", 1, "Sets Markov chain order")
+	ChainOrder = flag.Int("order", 1, "Sets Markov chain order")
 )
 
 const (
@@ -38,7 +38,7 @@ func (t Tables) getOrCreate(cID tele.ChatID) (gomarkov.Chain, error) {
 	if _, err := os.Stat(filePath); err != nil {
 		slog.Info("Creating new table for", "chatID", cID)
 
-		c := gomarkov.NewChain(*chainOrder)
+		c := gomarkov.NewChain(*ChainOrder)
 		t[cID] = TimedChain{time.Now(), c}
 		return *c, nil
 	}
@@ -46,7 +46,7 @@ func (t Tables) getOrCreate(cID tele.ChatID) (gomarkov.Chain, error) {
 	if err != nil {
 		return gomarkov.Chain{}, err
 	}
-	c := gomarkov.NewChain(*chainOrder)
+	c := gomarkov.NewChain(*ChainOrder)
 	err = c.UnmarshalJSON(data)
 	if err != nil {
 		return gomarkov.Chain{}, err

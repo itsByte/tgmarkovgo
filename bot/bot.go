@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	chattiness  = flag.Float64("chattiness", 0.1, "Sets chattiness variable, 0-1")
-	replyChance = flag.Float64("replyChance", 0.6, "Sets replyChance variable, 0-1")
+	Chattiness  = flag.Float64("chattiness", 0.1, "Sets chattiness variable, 0-1")
+	ReplyChance = flag.Float64("replyChance", 0.6, "Sets replyChance variable, 0-1")
 )
 
 func Init(t backend.Tables) {
@@ -45,7 +45,7 @@ func Init(t backend.Tables) {
 			slog.Error("Error", "Code", err)
 			return err
 		}
-		willReply := rand.Float64() < *replyChance
+		willReply := rand.Float64() < *ReplyChance
 		isReply := context.Message().IsReply()
 		var isMe bool
 		if isReply {
@@ -61,7 +61,7 @@ func Init(t backend.Tables) {
 				return err
 			}
 			return context.Reply(msg)
-		} else if rand.Float64() < *chattiness {
+		} else if rand.Float64() < *Chattiness {
 			msg, err := backend.GenerateMessage(t, context)
 			if err != nil {
 				slog.Error("Error", "Code", err)

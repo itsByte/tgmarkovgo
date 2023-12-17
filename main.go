@@ -50,5 +50,6 @@ func main() {
 		os.Exit(0)
 	}()
 	slog.Info("Bot starting...")
+	slog.Info("Options:", "ChainOrder", backend.ChainOrder, "Chattiness", bot.Chattiness, "ReplyChance", bot.ReplyChance)
 	bot.Init(t)
 }
