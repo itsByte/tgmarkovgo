@@ -68,8 +68,8 @@ func ProcessMessage(t Tables, context tele.Context) error {
 
 func GenerateMessage(t Tables, context tele.Context) (string, error) {
 	cID := context.Chat().ID
-	slog.Debug("Generating for", "chatID", cID)
 	c, err := t.getOrCreate(tele.ChatID(cID))
+	slog.Debug("Generating for", "chatID", cID, "order", c.Order)
 	if err != nil {
 		return "", err
 	}
