@@ -9,4 +9,4 @@ RUN go build -ldflags="-w -s" -o /app/markovbotgo
 FROM docker.io/alpine:latest
 COPY --from=builder /app/markovbotgo /app/markovbotgo
 WORKDIR /app
-ENTRYPOINT [ "/app/markovbotgo" ]
+CMD [ "/app/markovbotgo" ]
