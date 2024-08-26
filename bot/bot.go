@@ -26,7 +26,7 @@ func Init(t backend.Tables) {
 	b, err := tele.NewBot(pref)
 	if err != nil {
 		slog.Error("Error", "Code", err)
-		return
+		os.Exit(1)
 	}
 
 	b.Handle("/generate", func(c tele.Context) error {
