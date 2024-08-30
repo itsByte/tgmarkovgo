@@ -1,4 +1,4 @@
-FROM docker.io/golang:1.21-alpine AS builder
+FROM docker.io/golang:1.22-alpine AS builder
 RUN apk update && apk add --no-cache git
 WORKDIR /app/src
 COPY go.mod go.sum ./
