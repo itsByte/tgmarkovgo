@@ -8,8 +8,8 @@ import (
 	"syscall"
 	"time"
 
-	"itsbyte/markovbotgo/backend"
-	"itsbyte/markovbotgo/bot"
+	"github.com/itsByte/MarkovBotGo/backend"
+	"github.com/itsByte/MarkovBotGo/bot"
 )
 
 const (

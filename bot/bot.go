@@ -2,12 +2,13 @@ package bot
 
 import (
 	"flag"
-	"itsbyte/markovbotgo/backend"
 	"log/slog"
 	"math/rand"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/itsByte/MarkovBotGo/backend"
 
 	tele "gopkg.in/telebot.v3"
 )
