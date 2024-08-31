@@ -73,24 +73,8 @@ func GenerateMessage(t Tables, context tele.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	generatedText := []string{}
-	current := make(gomarkov.NGram, 0)
-	for i := 0; i < c.Order; i++ {
-		current = append(current, gomarkov.StartToken)
-	}
-	for {
-		next, err := c.Generate(current)
-		if err != nil {
-			return "", err
-		}
-		if next == gomarkov.EndToken {
-			break
-		}
-
-		current = append(current, next)[1:]
-		generatedText = append(generatedText, next)
-	}
-	return strings.Join(generatedText, " "), nil
+	msg, err := c.GenerateAll()
+	return strings.Join(msg, " "), err
 }
 
 func (t Tables) Persist() error {
