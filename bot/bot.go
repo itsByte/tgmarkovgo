@@ -18,6 +18,11 @@ var (
 	ReplyChance = flag.Float64("replyChance", 0.6, "Sets replyChance variable, 0-1")
 )
 
+func HandleMessage(t string, context tele.Context) error {
+
+	return nil
+}
+
 func Init(t backend.Tables) {
 	pref := tele.Settings{
 		Token:       os.Getenv("TOKEN"),
@@ -41,7 +46,7 @@ func Init(t backend.Tables) {
 
 	b.Handle(tele.OnText, func(context tele.Context) error {
 
-		err := backend.ProcessMessage(t, context)
+		err := backend.ProcessMessage(t, context, "\u001F_TEXT")
 		if err != nil {
 			slog.Error("Error", "Code", err)
 			return err

@@ -55,14 +55,19 @@ func (t Tables) getOrCreate(cID tele.ChatID) (gomarkov.Chain, error) {
 	return *c, nil
 }
 
-func ProcessMessage(t Tables, context tele.Context) error {
+func ProcessMessage(t Tables, context tele.Context, ty string) error {
 	cID := context.Chat().ID
 	c, err := t.getOrCreate(tele.ChatID(cID))
 	if err != nil {
 		return err
 	}
+	msg := []string{ty}
+	if ty != "\u001F_TEXT" {
+		msg = append(msg, context.Message().Media().MediaFile().FileID)
+	}
+	msg = append(msg, strings.Split(context.Text(), " ")...)
 	slog.Debug("Training for chat", "chatID", cID)
-	c.Add(strings.Split(context.Text(), " "))
+	c.Add(msg)
 	return nil
 }
 
