@@ -26,6 +26,12 @@ type TimedChain struct {
 	chain  *gomarkov.Chain
 }
 
+type ChainOutput struct {
+	Ty   string
+	Id   string
+	Text string
+}
+
 type Tables map[tele.ChatID]TimedChain
 
 func (t Tables) getOrCreate(cID tele.ChatID) (gomarkov.Chain, error) {
@@ -71,15 +77,32 @@ func ProcessMessage(t Tables, context tele.Context, ty string) error {
 	return nil
 }
 
-func GenerateMessage(t Tables, context tele.Context) (string, error) {
+func GenerateMessage(t Tables, context tele.Context) (ChainOutput, error) {
 	cID := context.Chat().ID
 	c, err := t.getOrCreate(tele.ChatID(cID))
 	slog.Debug("Generating for", "chatID", cID, "order", c.Order)
 	if err != nil {
-		return "", err
+		return ChainOutput{}, err
 	}
 	msg, err := c.GenerateAll()
-	return strings.Join(msg, " "), err
+	switch msg[0] {
+	case "\u001F_TEXT":
+		{
+			return ChainOutput{Ty: msg[0], Text: strings.Join(msg[1:], " ")}, err
+		}
+	case "\u001F_PHOTO":
+		{
+			return ChainOutput{Ty: msg[0], Id: msg[1], Text: strings.Join(msg[2:], " ")}, err
+		}
+	case "\u001F_STICKER":
+		{
+			return ChainOutput{Ty: msg[0], Id: msg[1]}, err
+		}
+	default:
+		{
+			return ChainOutput{}, err
+		}
+	}
 }
 
 func (t Tables) Persist() error {
