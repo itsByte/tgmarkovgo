@@ -85,6 +85,9 @@ func GenerateMessage(t Tables, context tele.Context) (ChainOutput, error) {
 		return ChainOutput{}, err
 	}
 	msg, err := c.GenerateAll()
+	if err != nil {
+		return ChainOutput{}, err
+	}
 	switch msg[0] {
 	case "\u001F_TEXT":
 		{
