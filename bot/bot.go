@@ -94,6 +94,10 @@ func Init(t backend.Tables) {
 		return c.Send(processGen(co))
 	})
 
+	b.Handle("/start", func(c tele.Context) error {
+		return c.Send("Hi!")
+	})
+
 	b.Handle(tele.OnText, func(context tele.Context) error {
 		err := backend.ProcessMessage(t, context, "\u001F_TEXT")
 		if err != nil {
