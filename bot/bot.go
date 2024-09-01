@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/itsByte/MarkovBotGo/backend"
+	"github.com/itsByte/tgmarkovgo/backend"
 
 	tele "gopkg.in/telebot.v3"
 )

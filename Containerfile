@@ -4,9 +4,9 @@ WORKDIR /app/src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go build -ldflags="-w -s" -o /app/markovbotgo
+RUN go build -ldflags="-w -s" -o /app/tgmarkovgo
 
 FROM docker.io/alpine:latest
-COPY --from=builder /app/markovbotgo /app/markovbotgo
+COPY --from=builder /app/tgmarkovgo /app/tgmarkovgo
 WORKDIR /app
-CMD [ "/app/markovbotgo" ]
+CMD [ "/app/tgmarkovgo" ]

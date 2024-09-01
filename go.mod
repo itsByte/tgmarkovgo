@@ -1,4 +1,4 @@
-module github.com/itsByte/MarkovBotGo
+module github.com/itsByte/tgmarkovgo
 
 go 1.22
 
