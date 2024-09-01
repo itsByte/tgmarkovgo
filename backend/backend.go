@@ -100,7 +100,7 @@ func GenerateMessage(t Tables, context tele.Context) (ChainOutput, error) {
 		}
 	default:
 		{
-			return ChainOutput{}, err
+			return ChainOutput{Ty: "\u001F_TEXT", Text: strings.Join(msg, " ")}, err
 		}
 	}
 }
