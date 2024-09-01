@@ -90,7 +90,7 @@ func GenerateMessage(t Tables, context tele.Context) (ChainOutput, error) {
 		{
 			return ChainOutput{Ty: msg[0], Text: strings.Join(msg[1:], " ")}, err
 		}
-	case "\u001F_PHOTO":
+	case "\u001F_PHOTO", "\u001F_ANIMATION":
 		{
 			return ChainOutput{Ty: msg[0], Id: msg[1], Text: strings.Join(msg[2:], " ")}, err
 		}

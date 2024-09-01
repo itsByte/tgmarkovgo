@@ -39,6 +39,10 @@ func processGen(co backend.ChainOutput) any {
 		{
 			return &tele.Photo{File: tele.File{FileID: co.Id}, Caption: co.Text}
 		}
+	case "\u001F_ANIMATION":
+		{
+			return &tele.Animation{File: tele.File{FileID: co.Id}, Caption: co.Text}
+		}
 	case "\u001F_STICKER":
 		{
 			return &tele.Sticker{File: tele.File{FileID: co.Id}}
@@ -101,6 +105,15 @@ func Init(t backend.Tables) {
 
 	b.Handle(tele.OnPhoto, func(context tele.Context) error {
 		err := backend.ProcessMessage(t, context, "\u001F_PHOTO")
+		if err != nil {
+			slog.Error("Error", "Code", err)
+			return err
+		}
+		return handleMessage(t, context)
+	})
+
+	b.Handle(tele.OnAnimation, func(context tele.Context) error {
+		err := backend.ProcessMessage(t, context, "\u001F_ANIMATION")
 		if err != nil {
 			slog.Error("Error", "Code", err)
 			return err
