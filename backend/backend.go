@@ -84,7 +84,7 @@ func GenerateMessage(t Tables, context tele.Context) (ChainOutput, error) {
 	if err != nil {
 		return ChainOutput{}, err
 	}
-	msg, err := c.GenerateAll()
+	msg, err := c.GenerateAllLimited(500)
 	if err != nil {
 		return ChainOutput{}, err
 	}
