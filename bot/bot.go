@@ -112,6 +112,10 @@ func Init(t backend.Tables) {
 		return c.Send("Hi!")
 	})
 
+	b.Handle("/help", func(c tele.Context) error {
+		return c.Send("Available commands:\n/start: Starts the bot\n/generate: Generate a new message\n/shut: Stop generating messages in this chat\n/unshut: Resume generating messages in this chat\n/help: Get help about the bot and the commands")
+	})
+
 	b.Handle("/shut", func(c tele.Context) error {
 		if !slices.Contains(mutedChats, c.Chat().ID) {
 			mutedChats = append(mutedChats, c.Chat().ID)
