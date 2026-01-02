@@ -2,11 +2,10 @@ package backend
 
 import (
 	"flag"
+	"fmt"
 	"log/slog"
-	"os"
-	"strconv"
+	"path"
 	"strings"
-	"time"
 
 	"github.com/itsByte/gomarkov"
 	tele "gopkg.in/telebot.v3"
@@ -16,77 +15,43 @@ var (
 	ChainOrder = flag.Int("order", 1, "Sets Markov chain order")
 )
 
-const (
-	baseDataPath string        = "data"
-	oldThreshold time.Duration = 24 * time.Hour
+var (
+	BaseDataPath = flag.String("datadir", "data", "Data Directory")
 )
 
-type TimedChain struct {
-	access time.Time
-	chain  *gomarkov.Chain
-}
-
 type ChainOutput struct {
-	Ty   string
-	Id   string
-	Text string
+	Ty   string // Type of message
+	Id   string // ID of media message
+	Text string // Text content of message
 }
 
-type Tables map[tele.ChatID]TimedChain
-
-func (t Tables) getOrCreate(cID tele.ChatID) (gomarkov.Chain, error) {
-	tc, exists := t[cID]
-	if exists {
-		t[cID] = TimedChain{time.Now(), tc.chain}
-		return *tc.chain, nil
-	}
-	filePath := baseDataPath + "/" + strconv.Itoa(int(cID)) + ".json"
-	if _, err := os.Stat(filePath); err != nil {
-		slog.Info("Creating new table for", "chatID", cID)
-
-		c := gomarkov.NewChain(*ChainOrder)
-		t[cID] = TimedChain{time.Now(), c}
-		return *c, nil
-	}
-	data, err := os.ReadFile(filePath)
+func BuildChain() (*gomarkov.Chain, error) {
+	// Create a new storage backend and chain
+	storage, err := gomarkov.NewPebbleStorage(path.Join(*BaseDataPath, "db"))
 	if err != nil {
-		return gomarkov.Chain{}, err
+		panic(fmt.Errorf("failed to create pebble storage: %w", err))
 	}
-	c := gomarkov.NewChain(*ChainOrder)
-	err = c.UnmarshalJSON(data)
-	if err != nil {
-		return gomarkov.Chain{}, err
-	}
-	t[cID] = TimedChain{time.Now(), c}
-	return *c, nil
+	return gomarkov.NewChain(*ChainOrder, storage), nil
 }
 
-func ProcessMessage(t Tables, context tele.Context, ty string) error {
+func ProcessMessage(chain *gomarkov.Chain, context tele.Context, ty string) error {
 	cID := context.Chat().ID
-	c, err := t.getOrCreate(tele.ChatID(cID))
-	if err != nil {
-		return err
-	}
 	msg := []string{ty}
 	if ty != "\u001F_TEXT" {
 		msg = append(msg, context.Message().Media().MediaFile().FileID)
 	}
 	msg = append(msg, strings.Split(context.Text(), " ")...)
 	slog.Debug("Training for chat", "chatID", cID)
-	c.Add(msg)
+	chain.Add(cID, msg)
 	return nil
 }
 
-func GenerateMessage(t Tables, context tele.Context) (ChainOutput, error) {
+func GenerateMessage(chain *gomarkov.Chain, context tele.Context) (ChainOutput, error) {
 	cID := context.Chat().ID
-	c, err := t.getOrCreate(tele.ChatID(cID))
-	slog.Debug("Generating for", "chatID", cID, "order", c.Order)
-	if err != nil {
-		return ChainOutput{}, err
-	}
-	msg, err := c.GenerateAllLimited(500)
-	if err != nil {
-		return ChainOutput{}, err
+	slog.Debug("Generating for", "chatID", cID, "order", chain.Order)
+	msg, err := chain.GenerateAllLimited(cID, 500)
+	if err != nil || len(msg) == 0 {
+		return ChainOutput{Ty: "\u001F_TEXT", Text: "Chain is empty!"}, err
 	}
 	switch msg[0] {
 	case "\u001F_TEXT":
@@ -104,43 +69,6 @@ func GenerateMessage(t Tables, context tele.Context) (ChainOutput, error) {
 	default:
 		{
 			return ChainOutput{Ty: "\u001F_TEXT", Text: strings.Join(msg, " ")}, err
-		}
-	}
-}
-
-func (t Tables) Persist() error {
-	os.MkdirAll(baseDataPath, 0755)
-	for cID, tc := range t {
-		m := tc.chain
-		data, err := m.MarshalJSON()
-		if err != nil {
-			return err
-		}
-		filePath := baseDataPath + "/" + strconv.Itoa(int(cID)) + ".json"
-		file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-		n, err := file.Write(data)
-		if err != nil {
-			return err
-		}
-		err = file.Truncate(int64(n))
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (t Tables) UnloadOld() {
-	t.Persist()
-	oldTime := time.Now().Add(-oldThreshold)
-	for k, v := range t {
-		if v.access.Before(oldTime) {
-			slog.Debug("Table unloaded", "chatID", k, "lastAccess", v.access)
-			delete(t, k)
 		}
 	}
 }

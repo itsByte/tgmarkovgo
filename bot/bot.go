@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/itsByte/gomarkov"
 	"github.com/itsByte/tgmarkovgo/backend"
 
 	tele "gopkg.in/telebot.v3"
@@ -55,19 +56,19 @@ func processGen(co backend.ChainOutput) any {
 	}
 }
 
-func handleMessage(t backend.Tables, context tele.Context, mutedChats []int64) error {
+func handleMessage(chain *gomarkov.Chain, context tele.Context, mutedChats []int64) error {
 	if slices.Contains(mutedChats, context.Chat().ID) {
 		return nil
 	}
 	if doesReply(context) {
-		co, err := backend.GenerateMessage(t, context)
+		co, err := backend.GenerateMessage(chain, context)
 		if err != nil {
 			slog.Error("Error", "Code", err)
 			return err
 		}
 		return context.Reply(processGen(co))
 	} else if rand.Float64() < *Chattiness {
-		co, err := backend.GenerateMessage(t, context)
+		co, err := backend.GenerateMessage(chain, context)
 		if err != nil {
 			slog.Error("Error", "Code", err)
 			return err
@@ -85,7 +86,7 @@ func removeMute(mutedChats []int64, cID int64) {
 	slog.Info("Unmuting chat", "chatID", cID)
 }
 
-func Init(t backend.Tables) {
+func Init(chain *gomarkov.Chain) {
 	pref := tele.Settings{
 		Token:       os.Getenv("TOKEN"),
 		Poller:      &tele.LongPoller{Timeout: 10 * time.Second},
@@ -100,7 +101,7 @@ func Init(t backend.Tables) {
 	mutedChats := make([]int64, 0)
 
 	b.Handle("/generate", func(c tele.Context) error {
-		co, err := backend.GenerateMessage(t, c)
+		co, err := backend.GenerateMessage(chain, c)
 		if err != nil {
 			slog.Error("Error", "Code", err)
 			return err
@@ -135,39 +136,39 @@ func Init(t backend.Tables) {
 	})
 
 	b.Handle(tele.OnText, func(context tele.Context) error {
-		err := backend.ProcessMessage(t, context, "\u001F_TEXT")
+		err := backend.ProcessMessage(chain, context, "\u001F_TEXT")
 		if err != nil {
 			slog.Error("Error", "Code", err)
 			return err
 		}
-		return handleMessage(t, context, mutedChats)
+		return handleMessage(chain, context, mutedChats)
 	})
 
 	b.Handle(tele.OnPhoto, func(context tele.Context) error {
-		err := backend.ProcessMessage(t, context, "\u001F_PHOTO")
+		err := backend.ProcessMessage(chain, context, "\u001F_PHOTO")
 		if err != nil {
 			slog.Error("Error", "Code", err)
 			return err
 		}
-		return handleMessage(t, context, mutedChats)
+		return handleMessage(chain, context, mutedChats)
 	})
 
 	b.Handle(tele.OnAnimation, func(context tele.Context) error {
-		err := backend.ProcessMessage(t, context, "\u001F_ANIMATION")
+		err := backend.ProcessMessage(chain, context, "\u001F_ANIMATION")
 		if err != nil {
 			slog.Error("Error", "Code", err)
 			return err
 		}
-		return handleMessage(t, context, mutedChats)
+		return handleMessage(chain, context, mutedChats)
 	})
 
 	b.Handle(tele.OnSticker, func(context tele.Context) error {
-		err := backend.ProcessMessage(t, context, "\u001F_STICKER")
+		err := backend.ProcessMessage(chain, context, "\u001F_STICKER")
 		if err != nil {
 			slog.Error("Error", "Code", err)
 			return err
 		}
-		return handleMessage(t, context, mutedChats)
+		return handleMessage(chain, context, mutedChats)
 	})
 
 	b.Start()
