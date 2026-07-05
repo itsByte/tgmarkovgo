@@ -57,6 +57,15 @@ func processGen(co backend.ChainOutput) any {
 	}
 }
 
+func hasSpoiler(entities []tele.MessageEntity) bool {
+	for _, e := range entities {
+		if e.Type == tele.EntitySpoiler {
+			return true
+		}
+	}
+	return false
+}
+
 func handleMessage(chain *gomarkov.Chain, context tele.Context, mutedChats []int64) error {
 	if slices.Contains(mutedChats, context.Chat().ID) {
 		return nil
@@ -196,7 +205,7 @@ func Init(chain *gomarkov.Chain) {
 	})
 
 	b.Handle(tele.OnText, func(context tele.Context) error {
-		if !backend.ShouldIgnoreText(context.Sender().ID) {
+		if !hasSpoiler(context.Message().Entities) && !backend.ShouldIgnoreText(context.Sender().ID) {
 			if err := backend.ProcessMessage(chain, context, "\u001F_TEXT"); err != nil {
 				slog.Error("Error", "Code", err)
 				return err
@@ -206,7 +215,7 @@ func Init(chain *gomarkov.Chain) {
 	})
 
 	b.Handle(tele.OnPhoto, func(context tele.Context) error {
-		if !backend.ShouldIgnoreMedia(context.Sender().ID) {
+		if !context.Message().HasMediaSpoiler && !hasSpoiler(context.Message().CaptionEntities) && !backend.ShouldIgnoreMedia(context.Sender().ID) {
 			if err := backend.ProcessMessage(chain, context, "\u001F_PHOTO"); err != nil {
 				slog.Error("Error", "Code", err)
 				return err
@@ -216,7 +225,7 @@ func Init(chain *gomarkov.Chain) {
 	})
 
 	b.Handle(tele.OnAnimation, func(context tele.Context) error {
-		if !backend.ShouldIgnoreMedia(context.Sender().ID) {
+		if !context.Message().HasMediaSpoiler && !hasSpoiler(context.Message().CaptionEntities) && !backend.ShouldIgnoreMedia(context.Sender().ID) {
 			if err := backend.ProcessMessage(chain, context, "\u001F_ANIMATION"); err != nil {
 				slog.Error("Error", "Code", err)
 				return err
