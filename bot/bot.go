@@ -155,7 +155,7 @@ func Init(chain *gomarkov.Chain) {
 	})
 
 	b.Handle("/help", func(c tele.Context) error {
-		return c.Send("Available commands:\n/start: Starts the bot\n/generate: Generate a new message\n/shut: Stop generating messages in this chat\n/unshut: Resume generating messages in this chat\n/ignore: Choose what the bot learns from your messages\n/help: Get help about the bot and the commands")
+		return c.Send("Available commands:\n/start: Starts the bot\n/generate: Generate a new message\n/shut: Stop generating messages in this chat\n/unshut: Resume generating messages in this chat\n/ignore: Choose what the bot learns from your messages\n/delete_media: Delete all media messages from this chat\n/delete_all: Delete all messages from this chat\n/help: Get help about the bot and the commands")
 	})
 
 	b.Handle("/ignore", sendIgnoreMenu)
