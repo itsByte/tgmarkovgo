@@ -72,3 +72,12 @@ func GenerateMessage(chain *gomarkov.Chain, context tele.Context) (ChainOutput, 
 		}
 	}
 }
+
+func DeleteChatAll(chain *gomarkov.Chain, cID int64) error {
+	return chain.ClearContext(cID)
+}
+
+func DeleteChatMedia(chain *gomarkov.Chain, cID int64) error {
+	tokensToDelete := []string{"\u001F_PHOTO", "\u001F_ANIMATION"}
+	return chain.ClearContextTokens(cID, tokensToDelete)
+}

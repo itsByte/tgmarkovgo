@@ -204,6 +204,58 @@ func Init(chain *gomarkov.Chain) {
 		return c.Reply("yay")
 	})
 
+	b.Handle("/delete_all", func(c tele.Context) error {
+		if c.Chat().Type != tele.ChatPrivate {
+			adminMembers, err := c.Bot().AdminsOf(c.Chat())
+			if err != nil {
+				return err
+			}
+			if !slices.ContainsFunc(adminMembers, func(admin tele.ChatMember) bool {
+				return admin.User.ID == c.Sender().ID
+			}) {
+				return c.Reply("You are not an admin")
+			}
+		}
+		if len(c.Args()) != 1 {
+			return c.Reply("Usage: /delete_all <chatID>. This will delete all messages from this chat.")
+		}
+		chatID, err := strconv.ParseInt(c.Args()[0], 10, 64)
+		if err != nil || chatID != c.Chat().ID {
+			return c.Reply("Invalid chat ID")
+		}
+		c.Send("Deleting all messages from this chat...")
+		if err := backend.DeleteChatAll(chain, chatID); err != nil {
+			return err
+		}
+		return c.Send("Done!")
+	})
+
+	b.Handle("/delete_media", func(c tele.Context) error {
+		if c.Chat().Type != tele.ChatPrivate {
+			adminMembers, err := c.Bot().AdminsOf(c.Chat())
+			if err != nil {
+				return err
+			}
+			if !slices.ContainsFunc(adminMembers, func(admin tele.ChatMember) bool {
+				return admin.User.ID == c.Sender().ID
+			}) {
+				return c.Reply("You are not an admin")
+			}
+		}
+		if len(c.Args()) != 1 {
+			return c.Reply("Usage: /delete_media <chatID>. This will delete all media messages (photos and animations) from this chat.")
+		}
+		chatID, err := strconv.ParseInt(c.Args()[0], 10, 64)
+		if err != nil || chatID != c.Chat().ID {
+			return c.Reply("Invalid chat ID")
+		}
+		c.Send("Deleting all media messages from this chat...")
+		if err := backend.DeleteChatMedia(chain, chatID); err != nil {
+			return err
+		}
+		return c.Send("Done!")
+	})
+
 	b.Handle(tele.OnText, func(context tele.Context) error {
 		if !hasSpoiler(context.Message().Entities) && !backend.ShouldIgnoreText(context.Sender().ID) {
 			if err := backend.ProcessMessage(chain, context, "\u001F_TEXT"); err != nil {
