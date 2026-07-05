@@ -6,6 +6,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -87,6 +88,8 @@ func removeMute(mutedChats []int64, cID int64) {
 }
 
 func Init(chain *gomarkov.Chain) {
+	backend.LoadIgnorePrefs()
+
 	pref := tele.Settings{
 		Token:       os.Getenv("TOKEN"),
 		Poller:      &tele.LongPoller{Timeout: 10 * time.Second},
@@ -99,6 +102,35 @@ func Init(chain *gomarkov.Chain) {
 	}
 
 	mutedChats := make([]int64, 0)
+
+	const (
+		uniqueToggleText  = "ignore_toggle_text"
+		uniqueToggleMedia = "ignore_toggle_media"
+	)
+
+	ignoreMenu := func(userID int64) *tele.ReplyMarkup {
+		uidStr := strconv.FormatInt(userID, 10)
+		textLabel := "Text"
+		if backend.ShouldIgnoreText(userID) {
+			textLabel = "✓ " + textLabel
+		}
+		mediaLabel := "Media"
+		if backend.ShouldIgnoreMedia(userID) {
+			mediaLabel = "✓ " + mediaLabel
+		}
+		return &tele.ReplyMarkup{InlineKeyboard: [][]tele.InlineButton{{
+			{Unique: uniqueToggleText, Text: textLabel, Data: uidStr},
+			{Unique: uniqueToggleMedia, Text: mediaLabel, Data: uidStr},
+		}}}
+	}
+
+	sendIgnoreMenu := func(c tele.Context) error {
+		return c.Send("Choose what to ignore for learning:", ignoreMenu(c.Sender().ID))
+	}
+
+	parseTargetUID := func(c tele.Context) (int64, error) {
+		return strconv.ParseInt(c.Callback().Data, 10, 64)
+	}
 
 	b.Handle("/generate", func(c tele.Context) error {
 		co, err := backend.GenerateMessage(chain, c)
@@ -114,7 +146,35 @@ func Init(chain *gomarkov.Chain) {
 	})
 
 	b.Handle("/help", func(c tele.Context) error {
-		return c.Send("Available commands:\n/start: Starts the bot\n/generate: Generate a new message\n/shut: Stop generating messages in this chat\n/unshut: Resume generating messages in this chat\n/help: Get help about the bot and the commands")
+		return c.Send("Available commands:\n/start: Starts the bot\n/generate: Generate a new message\n/shut: Stop generating messages in this chat\n/unshut: Resume generating messages in this chat\n/ignore: Choose what the bot learns from your messages\n/help: Get help about the bot and the commands")
+	})
+
+	b.Handle("/ignore", sendIgnoreMenu)
+
+	b.Handle(&tele.InlineButton{Unique: uniqueToggleText}, func(c tele.Context) error {
+		targetUID, err := parseTargetUID(c)
+		if err != nil {
+			return c.RespondText("Invalid menu")
+		}
+		if c.Sender().ID != targetUID {
+			return c.RespondText("This menu is not for you.")
+		}
+		backend.SetIgnoreText(targetUID, !backend.ShouldIgnoreText(targetUID))
+		_ = c.Edit("Choose what to ignore for learning:", ignoreMenu(targetUID))
+		return c.RespondText("Text toggled")
+	})
+
+	b.Handle(&tele.InlineButton{Unique: uniqueToggleMedia}, func(c tele.Context) error {
+		targetUID, err := parseTargetUID(c)
+		if err != nil {
+			return c.RespondText("Invalid menu")
+		}
+		if c.Sender().ID != targetUID {
+			return c.RespondText("This menu is not for you.")
+		}
+		backend.SetIgnoreMedia(targetUID, !backend.ShouldIgnoreMedia(targetUID))
+		_ = c.Edit("Choose what to ignore for learning:", ignoreMenu(targetUID))
+		return c.RespondText("Media toggled")
 	})
 
 	b.Handle("/shut", func(c tele.Context) error {
@@ -136,28 +196,31 @@ func Init(chain *gomarkov.Chain) {
 	})
 
 	b.Handle(tele.OnText, func(context tele.Context) error {
-		err := backend.ProcessMessage(chain, context, "\u001F_TEXT")
-		if err != nil {
-			slog.Error("Error", "Code", err)
-			return err
+		if !backend.ShouldIgnoreText(context.Sender().ID) {
+			if err := backend.ProcessMessage(chain, context, "\u001F_TEXT"); err != nil {
+				slog.Error("Error", "Code", err)
+				return err
+			}
 		}
 		return handleMessage(chain, context, mutedChats)
 	})
 
 	b.Handle(tele.OnPhoto, func(context tele.Context) error {
-		err := backend.ProcessMessage(chain, context, "\u001F_PHOTO")
-		if err != nil {
-			slog.Error("Error", "Code", err)
-			return err
+		if !backend.ShouldIgnoreMedia(context.Sender().ID) {
+			if err := backend.ProcessMessage(chain, context, "\u001F_PHOTO"); err != nil {
+				slog.Error("Error", "Code", err)
+				return err
+			}
 		}
 		return handleMessage(chain, context, mutedChats)
 	})
 
 	b.Handle(tele.OnAnimation, func(context tele.Context) error {
-		err := backend.ProcessMessage(chain, context, "\u001F_ANIMATION")
-		if err != nil {
-			slog.Error("Error", "Code", err)
-			return err
+		if !backend.ShouldIgnoreMedia(context.Sender().ID) {
+			if err := backend.ProcessMessage(chain, context, "\u001F_ANIMATION"); err != nil {
+				slog.Error("Error", "Code", err)
+				return err
+			}
 		}
 		return handleMessage(chain, context, mutedChats)
 	})
